@@ -1,2 +1,5 @@
-# obsidian-rizom-brain
-Rizom Brain for Obsidian: keep a vault in step with your Rizom brain.
+# Rizom Brain
+
+Keep an Obsidian vault on your own device in step with your Rizom brain.
+
+The first release is being prepared. The source is in https://github.com/rizom-ai/brains, under `packages/obsidian-plugin`.
