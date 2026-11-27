@@ -81,7 +81,9 @@ jobs:
             packages/obsidian-plugin/dist/public-repo/
           if-no-files-found: error
 
-  # Publishes the files the build made, and runs nothing else.
+  # Publishes the files the build made, and runs nothing else. It also signs
+  # an attestation that the release files were built by this workflow, which
+  # needs the two extra permissions.
   publish:
     name: Publish
     needs: build
@@ -90,6 +92,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
+      attestations: write
     env:
       GH_TOKEN: ${{ github.token }}
       VERSION: ${{ needs.build.outputs.version }}
@@ -110,6 +114,15 @@ jobs:
         with:
           name: plugin
           path: built
+
+      # Before anything is published: a failure here leaves nothing behind.
+      - name: Attest the release files
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            built/main.js
+            built/manifest.json
+            built/styles.css
 
       # The source is replaced whole, so a file removed in rizom-ai/brains is
       # removed here.
