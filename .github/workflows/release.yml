@@ -1,9 +1,10 @@
 name: Release
 
 # Publishes the Rizom Brain plugin from its source in rizom-ai/brains
-# (packages/obsidian-plugin): this repository's root files, and a release
-# tagged with the manifest's version holding the built plugin. Obsidian
-# reads the plugin from both. It runs only when started by hand.
+# (packages/obsidian-plugin): this repository's root files, a copy of the
+# source under src/, and a release tagged with the manifest's version holding
+# the built plugin. Obsidian reads the plugin from the root files and the
+# release. It runs only when started by hand.
 on:
   workflow_dispatch:
     inputs:
@@ -65,6 +66,7 @@ jobs:
         run: |
           echo "Version ${{ steps.version.outputs.version }} from rizom-ai/brains@${{ steps.version.outputs.commit }}"
           echo "Repository root:"; ls -l public-repo
+          echo "Source files: $(find public-repo/src -type f | wc -l)"
           echo "Release files:"; ls -l main.js manifest.json styles.css
           sha256sum main.js manifest.json styles.css
 
@@ -109,12 +111,16 @@ jobs:
           name: plugin
           path: built
 
-      - name: Update the repository's root files
+      # The source is replaced whole, so a file removed in rizom-ai/brains is
+      # removed here.
+      - name: Update the repository's root files and source
         run: |
           cp built/public-repo/README.md built/public-repo/LICENSE built/public-repo/manifest.json built/public-repo/versions.json .
+          rm -rf src
+          cp -R built/public-repo/src src
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add README.md LICENSE manifest.json versions.json
+          git add -A README.md LICENSE manifest.json versions.json src
           if ! git diff --cached --quiet; then
             git commit -m "Rizom Brain $VERSION"
             git push
